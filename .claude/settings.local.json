@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '{print length, $0}')",
+      "Bash(awk '{indent=\"\"; for\\(i=1;i<length\\($0\\)/4;i++\\) indent=\"  \"; print indent substr\\($0, length\\($0\\)-length\\(substr\\($0, 1, index\\($0, \"/\"\\)-1\\)\\), length\\($0\\)\\)}')"
+    ]
+  }
+}

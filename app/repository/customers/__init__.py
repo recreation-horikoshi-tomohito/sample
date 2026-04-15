@@ -12,4 +12,4 @@ class Customer:
 class ICustomerRepository(ABC):
     @abstractmethod
     def list(self) -> list[Customer]:
-        ...
+        raise NotImplementedError

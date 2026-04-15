@@ -8,7 +8,7 @@ def test_list_customers_returns_all_customers():
 
     output = use_case.execute(ListCustomersInput())
 
-    assert len(output.customers) == 3
+    assert len(output.customer_list) == 3
 
 
 def test_list_customers_returns_correct_fields():
@@ -17,10 +17,10 @@ def test_list_customers_returns_correct_fields():
 
     output = use_case.execute(ListCustomersInput())
 
-    customer = output.customers[0]
+    customer = output.customer_list[0]
     assert customer.id == 1
-    assert customer.name == "Alice"
-    assert customer.email == "alice@example.com"
+    assert customer.name == "山田太郎"
+    assert customer.email == "yamada@example.com"
 
 
 def test_list_customers_all_have_required_fields():
@@ -29,7 +29,7 @@ def test_list_customers_all_have_required_fields():
 
     output = use_case.execute(ListCustomersInput())
 
-    for customer in output.customers:
+    for customer in output.customer_list:
         assert customer.id is not None
         assert customer.name is not None
         assert customer.email is not None

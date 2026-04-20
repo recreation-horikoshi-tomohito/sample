@@ -353,6 +353,14 @@ else
         FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
         BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
     fi
+    # Apply branch_prefix from git-config.yml if configured
+    _GIT_CONFIG="$REPO_ROOT/.specify/extensions/git/git-config.yml"
+    if [ -f "$_GIT_CONFIG" ]; then
+        _BRANCH_PREFIX=$(grep -E '^branch_prefix:' "$_GIT_CONFIG" | sed 's/^branch_prefix:[[:space:]]*//' | tr -d '"' | tr -d "'" | xargs)
+        if [ -n "$_BRANCH_PREFIX" ] && [ "$_BRANCH_PREFIX" != "null" ]; then
+            BRANCH_NAME="${_BRANCH_PREFIX}/${BRANCH_NAME}"
+        fi
+    fi
 fi
 
 # GitHub enforces a 244-byte limit on branch names

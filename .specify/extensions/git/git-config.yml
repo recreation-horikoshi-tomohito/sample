@@ -4,6 +4,10 @@
 # Branch numbering strategy: "sequential" (001, 002, ...) or "timestamp" (YYYYMMDD-HHMMSS)
 branch_numbering: sequential
 
+# Optional prefix prepended to auto-generated branch names (e.g. "feature" → "feature/001-name")
+# Leave blank or omit to disable.
+branch_prefix: feature
+
 # Commit message used by `git commit` during repository initialization
 init_commit_message: "[Spec Kit] Initial commit"
 

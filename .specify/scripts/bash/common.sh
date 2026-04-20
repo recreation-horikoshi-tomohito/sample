@@ -144,9 +144,14 @@ check_feature_branch() {
     if [[ "$branch" =~ ^[0-9]{3,}- ]] && [[ ! "$branch" =~ ^[0-9]{7}-[0-9]{6}- ]] && [[ ! "$branch" =~ ^[0-9]{7,8}-[0-9]{6}$ ]]; then
         is_sequential=true
     fi
-    if [[ "$is_sequential" != "true" ]] && [[ ! "$branch" =~ ^[0-9]{8}-[0-9]{6}- ]]; then
+    # Accept GitHub issue-style branches: issues-{number}
+    local is_issue=false
+    if [[ "$branch" =~ ^issues-[0-9]+$ ]]; then
+        is_issue=true
+    fi
+    if [[ "$is_sequential" != "true" ]] && [[ "$is_issue" != "true" ]] && [[ ! "$branch" =~ ^[0-9]{8}-[0-9]{6}- ]]; then
         echo "ERROR: Not on a feature branch. Current branch: $raw" >&2
-        echo "Feature branches should be named like: 001-feature-name, 1234-feature-name, or 20260319-143022-feature-name" >&2
+        echo "Feature branches should be named like: 001-feature-name, issues-6, or 20260319-143022-feature-name" >&2
         return 1
     fi
 

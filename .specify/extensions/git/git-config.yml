@@ -8,6 +8,10 @@ branch_numbering: sequential
 # Leave blank or omit to disable.
 branch_prefix: feature
 
+# Base branch to checkout and pull from before creating a new feature branch.
+# Leave blank or omit to skip auto-checkout/pull.
+base_branch: develop
+
 # Commit message used by `git commit` during repository initialization
 init_commit_message: "[Spec Kit] Initial commit"
 

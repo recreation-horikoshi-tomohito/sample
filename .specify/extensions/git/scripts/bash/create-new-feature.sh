@@ -385,6 +385,22 @@ elif [ "$BRANCH_BYTE_LEN" -gt $MAX_BRANCH_LENGTH ]; then
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
+if [ "$DRY_RUN" != true ] && [ "$HAS_GIT" = true ]; then
+    # Checkout and pull base branch before creating feature branch
+    _GIT_CONFIG="$REPO_ROOT/.specify/extensions/git/git-config.yml"
+    if [ -f "$_GIT_CONFIG" ]; then
+        _BASE_BRANCH=$(grep -E '^base_branch:' "$_GIT_CONFIG" | sed 's/^base_branch:[[:space:]]*//' | tr -d '"' | tr -d "'" | xargs)
+        if [ -n "$_BASE_BRANCH" ] && [ "$_BASE_BRANCH" != "null" ]; then
+            >&2 echo "[specify] Switching to base branch '$_BASE_BRANCH' and pulling latest..."
+            if git checkout -q "$_BASE_BRANCH" 2>/dev/null; then
+                git pull --ff-only 2>/dev/null || >&2 echo "[specify] Warning: pull failed, proceeding with local state"
+            else
+                >&2 echo "[specify] Warning: could not checkout '$_BASE_BRANCH', creating branch from current HEAD"
+            fi
+        fi
+    fi
+fi
+
 if [ "$DRY_RUN" != true ]; then
     if [ "$HAS_GIT" = true ]; then
         branch_create_error=""

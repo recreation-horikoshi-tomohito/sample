@@ -21,6 +21,34 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## GitHub Issue Detection (Auto-Detection)
+
+Before anything else, scan the feature description (user input / `$ARGUMENTS`) for an Issue number using the following patterns **in priority order**:
+
+1. **GitHub Issue URL** — e.g. `https://github.com/<owner>/<repo>/issues/9`
+   - Regex: `https?://github\.com/[^/]+/[^/]+/issues/(\d+)`
+2. **Hash prefix** — e.g. `#9`
+   - Regex: `#(\d+)` (standalone, not inside a URL)
+3. **issues/ path** — e.g. `issues/9`
+   - Regex: `\bissues/(\d+)\b`
+
+If any pattern matches, extract the issue number `N` and set:
+
+```
+GIT_BRANCH_NAME=feature/issues-N
+```
+
+Then proceed as if the user explicitly provided `GIT_BRANCH_NAME` (see below).
+
+**Examples**:
+
+| User writes | Auto-detected branch |
+|---|---|
+| `社員一覧 #9` | `feature/issues-9` |
+| `https://github.com/org/repo/issues/9 社員一覧を作りたい` | `feature/issues-9` |
+| `社員一覧 issues/9` | `feature/issues-9` |
+| `社員一覧` (no issue number) | sequential: `feature/002-employee-list` |
+
 ## Environment Variable Override
 
 If the user explicitly provided `GIT_BRANCH_NAME` (e.g., via environment variable, argument, or in their request), pass it through to the script by setting the `GIT_BRANCH_NAME` environment variable before invoking the script. When `GIT_BRANCH_NAME` is set:

@@ -100,3 +100,76 @@ def test_勤続年数は端数切り捨て(client, app):
     data = response.get_json()
     # 2026-04-20 時点で2024-10-01入社 → 1年と約7ヶ月 → 切り捨て1年
     assert data[0]["years_of_service"] == 1
+
+
+# --- 社員詳細 US1: 社員詳細情報の取得 ---
+
+def seed_one(app, employee):
+    with app.app_context():
+        db = get_db(app)
+        cur = db.execute(
+            "INSERT INTO employees (name, role, position, department, age, hire_date, status)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (employee["name"], employee["role"], employee["position"],
+             employee["department"], employee["age"], employee["hire_date"], employee["status"])
+        )
+        db.commit()
+        return cur.lastrowid
+
+
+def test_在籍中社員のIDを指定して詳細情報が取得できる(client, app):
+    eid = seed_one(app, {
+        "name": "山田太郎", "role": "エンジニア", "position": "主任",
+        "department": "開発部", "age": 32, "hire_date": "2021-04-01", "status": "在籍中",
+    })
+    response = client.get(f"/api/employees/{eid}")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["name"] == "山田太郎"
+
+
+def test_詳細レスポンスに必要なフィールドが全て含まれ勤続年数が正確に計算される(client, app):
+    eid = seed_one(app, {
+        "name": "古参社員", "role": "エンジニア", "position": "部長",
+        "department": "開発部", "age": 45, "hire_date": "2021-04-20", "status": "在籍中",
+    })
+    response = client.get(f"/api/employees/{eid}")
+    data = response.get_json()
+    assert "id" in data
+    assert "name" in data
+    assert "role" in data
+    assert "position" in data
+    assert "department" in data
+    assert "age" in data
+    assert "hire_date" in data
+    assert "years_of_service" in data
+    # 2026-04-20 時点で 2021-04-20 入社 → 5年
+    assert data["years_of_service"] == 5
+
+
+def test_詳細レスポンスにstatusフィールドが含まれない(client, app):
+    eid = seed_one(app, {
+        "name": "鈴木三郎", "role": "エンジニア", "position": "一般",
+        "department": "開発部", "age": 25, "hire_date": "2025-04-01", "status": "在籍中",
+    })
+    response = client.get(f"/api/employees/{eid}")
+    data = response.get_json()
+    assert "status" not in data
+
+
+# --- 社員詳細 US2: エラーハンドリング ---
+
+def test_存在しないIDを指定した場合404とエラーメッセージが返る(client):
+    response = client.get("/api/employees/9999")
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "社員が見つかりません"}
+
+
+def test_退職済み社員のIDを指定した場合404が返る(client, app):
+    eid = seed_one(app, {
+        "name": "退職者", "role": "エンジニア", "position": "一般",
+        "department": "開発部", "age": 35, "hire_date": "2020-04-01", "status": "退職済",
+    })
+    response = client.get(f"/api/employees/{eid}")
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "社員が見つかりません"}

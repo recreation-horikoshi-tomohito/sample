@@ -1,50 +1,137 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT
+==================
+Version change: (template) → 1.0.0
+原則追加:
+  - [前提] テスト駆動開発（t_wadaのTDD）によるプロジェクト遂行
+  - I. オニオンアーキテクチャ
+  - II. Blueprintパターン（1機能1ファイル）
+  - III. シンプリシティ（徹底的なシンプルさ）
+  - IV. 日本語ドキュメント
+セクション追加:
+  - 大前提（TDD）
+  - 技術スタック
+  - 開発環境
+セクション削除: なし（テンプレートプレースホルダーを置換）
+テンプレート更新状況:
+  - ✅ .specify/templates/plan-template.md（Constitution Checkセクション確認済み・変更不要）
+  - ✅ .specify/templates/spec-template.md（確認済み・変更不要）
+  - ✅ .specify/templates/tasks-template.md（TDDタスク順序が大前提と整合済み）
+保留中TODO: なし
+-->
+
+# 社員管理API Constitution
+
+## 大前提
+
+**このプロジェクトはテスト駆動開発（t_wadaのTDD）でプロジェクトを遂行することを大前提とする。**
+
+t_wadaが提唱するTDDスタイルに従い、Red→Green→Refactorのサイクルを全ての機能実装において厳守する。
+この大前提は全ての原則・判断に優先し、例外は認めない。
+
+- 新機能の実装コードはテストが先に存在しなければならない（MUST）
+- テストは実装前に書き、失敗（Red）を確認してから実装（Green）に移行する（MUST）
+- テストなしの実装コードを追加してはならない（MUST NOT）
+- `tests/presentation/` 配下にBlueprintに対応するテストファイルを配置する（MUST）
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. オニオンアーキテクチャ
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+依存方向は内側（domain）に向かってのみ許可する。
+`presentation → usecase → domain` の一方向依存を厳守する。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- `domain/` 層は外部依存（Flask、SQLite等）を一切持ってはならない（MUST NOT）
+- `infrastructure/` の変更は `domain/` と `usecase/` に影響してはならない（MUST NOT）
+- 各層の責務:
+  - `domain/`: エンティティ・ビジネスロジック（最内層）
+  - `usecase/`: ユースケース
+  - `infrastructure/`: 外部依存（SQLite等）
+  - `presentation/`: FlaskのBlueprint（最外層）
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**理由**: テスト容易性・変更への耐性・関心の分離。ビジネスロジックをフレームワーク
+から独立させることで長期保守性を確保する。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Blueprintパターン（1機能1ファイル）
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+FlaskのBlueprintを使い、1つの機能（リソース）に対して1つのファイルを割り当てる。
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- presentation層の各Blueprintファイルは単一機能のみを担当する（MUST）
+- Blueprintファイルに対応するテストファイルを `tests/presentation/` に置く（MUST）
+- HTTPエラーレスポンスは400（クライアントエラー）または500（サーバーエラー）のみ（MUST）
+- APIレスポンスはJSON形式で返す（MUST）
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**理由**: 機能の局所化により変更影響範囲を最小化し、テストとの対応関係を明確にする。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. シンプリシティ（徹底的なシンプルさ）
+
+例外処理・入力バリデーション・コードは極限までシンプルに保つ。
+
+- 型アノテーションは記述しない（SHOULD NOT）
+- ロギング実装は追加しない（MUST NOT）
+- 例外・入力処理は最小限に留める（MUST）
+- YAGNIを徹底する: 現在必要でない機能・抽象化を追加してはならない（MUST NOT）
+- DBはSQLiteのみを使用する（MUST）
+
+**理由**: シンプルなコードは読みやすく、保守しやすく、バグが少ない。
+この規模のアプリに不要な複雑さを持ち込まない。
+
+### IV. 日本語ドキュメント
+
+全てのドキュメント・コメント・コミットメッセージ・AIへの回答は日本語で記述する。
+
+- スペック・計画・タスク等のSpecKitドキュメントはすべて日本語で書く（MUST）
+- コード内コメントが必要な場合は日本語で書く（MUST）
+- AIエージェントへの回答・提案は日本語で行う（MUST）
+
+**理由**: チームの共通言語が日本語であり、ドキュメントの可読性と保守性を最大化する。
+
+## 技術スタック
+
+- **言語**: Python 3.12
+- **フレームワーク**: Flask 3.1
+- **パッケージ管理**: uv
+- **静的解析・フォーマット**: ruff
+- **ビルドツール**: hatchling
+- **テストフレームワーク**: pytest 8.3.5
+- **データベース**: SQLite
+- **コンテナ**: Docker（`docker compose up -d` で起動、ホスト8081→コンテナ5000）
+
+## 開発環境
+
+**ディレクトリ構成**:
+
+```
+app/
+├── __init__.py
+└── api/
+    ├── domain/          # エンティティ・ビジネスロジック（最内層）
+    ├── usecase/         # ユースケース
+    ├── infrastructure/  # 外部依存（SQLite等）
+    └── presentation/    # FlaskのBlueprint（最外層）
+tests/
+└── presentation/        # Blueprintファイルに対応するテストファイル
+```
+
+**起動方法**:
+
+```bash
+docker compose up -d
+```
+
+**アクセス先**: `http://localhost:8081`（内部: `0.0.0.0:5000`）
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+本Constitutionはプロジェクトの全実装判断に優先する。
+修正には以下のプロセスが必要：
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- **修正手順**: 変更内容をユーザーに説明し、バージョンをインクリメントし、影響するテンプレートを同期する
+- **バージョンポリシー**:
+  - MAJOR: 大前提・原則の廃止または根本的再定義（後方非互換）
+  - MINOR: 新原則・新セクションの追加または大幅な拡張
+  - PATCH: 文言修正・明確化・タイポ修正など非意味的な変更
+- **コンプライアンスレビュー**: 各PR・タスク実装時にConstitution Checkを実施する
+- **ガイダンス**: ランタイム開発ガイダンスは `.specify/memory/` 配下のドキュメントを参照
+
+**Version**: 1.0.0 | **Ratified**: 2026-04-20 | **Last Amended**: 2026-04-20

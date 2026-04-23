@@ -78,12 +78,26 @@
       "Bash(git push --force)"
     ]
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-commit-check.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  },
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "excludedCommands": ["git", "docker"],
     "allowUnsandboxedCommands": false,
-    "failIfUnavailable": false,
+    "failIfUnavailable": true,
     "network": {
       "allowedDomains": [
         "github.com",

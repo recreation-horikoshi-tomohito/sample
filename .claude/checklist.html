@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code セキュリティチェックリスト</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Koto", "Yu Gothic", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #1d1d1f;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6e6e73;
+      margin-bottom: 40px;
+    }
+
+    /* Progress */
+    .progress-bar-wrap {
+      background: #e5e5ea;
+      border-radius: 99px;
+      height: 8px;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #34c759;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 13px;
+      color: #6e6e73;
+      margin-bottom: 32px;
+    }
+
+    /* Step card */
+    .step {
+      background: #fff;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f2f2f7;
+    }
+
+    .step-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-gray   { background: #e5e5ea; color: #6e6e73; }
+    .badge-blue   { background: #e8f0fe; color: #1a73e8; }
+    .badge-orange { background: #fff3e0; color: #e65100; }
+    .badge-red    { background: #fce8e6; color: #c62828; }
+    .badge-green  { background: #e6f4ea; color: #1e7e34; }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: #6e6e73;
+      padding: 10px 24px 0;
+    }
+
+    /* Checklist items */
+    .checklist {
+      padding: 12px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 0;
+    }
+
+    .check-item input[type="checkbox"] {
+      display: none;
+    }
+
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d1d6;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      transition: all 0.15s;
+    }
+
+    .check-item input:checked + .check-box {
+      background: #34c759;
+      border-color: #34c759;
+    }
+
+    .check-item input:checked + .check-box::after {
+      content: "";
+      display: block;
+      width: 5px;
+      height: 9px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    .check-label {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1d1d1f;
+      transition: color 0.15s;
+    }
+
+    .check-item input:checked ~ .check-label {
+      color: #8e8e93;
+      text-decoration: line-through;
+    }
+
+    .check-sub {
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+
+    /* Code snippets inline */
+    code {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 12px;
+      background: #f2f2f7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #d63384;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #8e8e93;
+      text-transform: uppercase;
+      padding: 6px 0 4px;
+      border-top: 1px solid #f2f2f7;
+      margin-top: 4px;
+    }
+
+    /* Done banner */
+    .done-banner {
+      background: #34c759;
+      color: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin-top: 24px;
+      display: none;
+    }
+
+    .done-banner.visible { display: block; }
+
+    .done-banner h2 { font-size: 20px; margin-bottom: 6px; }
+    .done-banner p  { font-size: 14px; opacity: 0.9; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🔐 Claude Code セキュリティチェックリスト</h1>
+  <p class="subtitle">Flask プロジェクト向け · 3層多層防御</p>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p class="progress-label" id="progressLabel">0 / 0 完了</p>
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-badge badge-gray">STEP 1</span>
+      <span class="step-title">契約タイプを確認する</span>
+    </div>
+    <p class="step-desc">Consumer（Free/Pro/Max）は学習設定のOFFが必要。Commercial（Team/Enterprise/API）は原則OFF。</p>
+    <div class="checklist">
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">自分の契約タイプを確認した（Consumer / Commercial）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">Consumer の場合：<code>claude.ai/settings/privacy</code> で学習設定をOFFにした</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-badge badge-blue">STEP 2</span>
+      <span class="step-title">設定レベルを整理する</span>
+    </div>
+    <p class="step-desc">User / Project / Local の3レベルで設定を分離する。</p>
+    <div class="checklist">
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>~/.claude/settings.json</code>（User）に全プロジェクト共通の deny を設定した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>.claude/settings.json</code>（Project）にプロジェクト固有の allow / ask / deny + sandbox を設定した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>.claude/settings.local.json</code>（Local）を <code>.gitignore</code> に追加した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>.claude/settings.json</code> をリポジトリにコミットした（チーム共有）</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-badge badge-orange">STEP 3</span>
+      <span class="step-title">技術的対策（settings.json）</span>
+    </div>
+    <p class="step-desc"><code>.claude/settings.json</code> に Permission Rules と OS サンドボックスを設定する。</p>
+    <div class="checklist">
+
+      <div class="section-label">Permission Rules — 基本設定</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>disableBypassPermissionsMode: "disable"</code> を設定した（全許可モードの無効化）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>disableAutoMode: "disable"</code> を設定した（自動実行モードの無効化）</span>
+      </label>
+
+      <div class="section-label">Permission Rules — deny: 機密ファイルの読み取り禁止</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>.env*</code> / <code>*.env</code> を deny に追加した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>*.keystore</code> / <code>*.jks</code> / <code>*.p12</code> / <code>*.pem</code> を deny に追加した（署名鍵）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>*service-account*.json</code> / <code>*-sa.json</code> を deny に追加した（GCPサービスアカウント）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>~/.aws/*</code> / <code>~/.config/gcloud/*</code> を deny に追加した（クラウド認証）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>~/.ssh/*</code> / <code>*id_rsa*</code> / <code>*id_ed25519*</code> を deny に追加した（SSH鍵）</span>
+      </label>
+
+      <div class="section-label">Permission Rules — deny: Bash 危険操作の禁止</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>git push --force</code> / <code>git push -f</code> を deny に追加した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>sudo</code> / <code>rm -rf</code> / <code>dd</code> / <code>mkfs</code> / <code>kill -9</code> を deny に追加した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>printenv</code> / <code>env</code> / <code>export</code> を deny に追加した（環境変数出力防止）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>curl</code> / <code>wget</code> / <code>nc</code> / <code>nmap</code> / <code>ssh</code> / <code>scp</code> を deny に追加した（外部通信防止）</span>
+      </label>
+
+      <div class="section-label">Permission Rules — ask: 確認が必要な操作</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>git push *</code> を ask に追加した（リモートへの影響）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>git clean *</code> / <code>git reset *</code> を ask に追加した（ファイル削除・巻き戻し）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>gh *</code> を ask に追加した（GitHub CLI / PR・Issue操作）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>uv add *</code> / <code>pip install *</code> などパッケージインストール系を ask に追加した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>WebFetch(*)</code> を ask に追加した（未許可ドメインへの通信）</span>
+      </label>
+
+      <div class="section-label">Permission Rules — allow: 自動許可（WebFetch）</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">必要なドキュメントドメインのみ allow に追加した<br><span class="check-sub">例: github.com / docs.python.org / flask.palletsprojects.com / pypi.org / docs.docker.com / sqlite.org</span></span>
+      </label>
+
+      <div class="section-label">OS サンドボックス設定</div>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>sandbox.enabled: true</code> を設定した</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>autoAllowBashIfSandboxed: true</code> を設定した（隔離内での自動実行）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>excludedCommands: ["git", "docker"]</code> を設定した（sandbox対象外）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>allowUnsandboxedCommands: false</code> を設定した（sandbox外コマンドを禁止）</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">network.allowedDomains に必要なドメインのみ追加した<br><span class="check-sub">例: github.com / pypi.org / files.pythonhosted.org / docker.io</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label"><code>allowLocalBinding: true</code> を設定した（Flask開発サーバー用）</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-badge badge-green">STEP 4</span>
+      <span class="step-title">運用ルールを徹底する</span>
+    </div>
+    <p class="step-desc">技術設定だけでは防げない人的リスクを運用ルールで補う。</p>
+    <div class="checklist">
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">機密ファイルの内容をチャットに貼らない</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">ログを貼る前に機密情報をマスク（<code>***</code> 等）する</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">聞くなら「構造」だけ渡し、実際の値は渡さない</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">ルールを <code>CLAUDE.md</code> に記載してチームに共有する</span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox">
+        <span class="check-box"></span>
+        <span class="check-label">外部READMEやブログのコマンドをそのままコピペしない</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="done-banner" id="doneBanner">
+    <h2>✅ セットアップ完了！</h2>
+    <p>3層多層防御が整いました。安全に Claude Code を使えます。</p>
+  </div>
+
+</div>
+
+<script>
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const progressBar = document.getElementById('progressBar');
+  const progressLabel = document.getElementById('progressLabel');
+  const doneBanner = document.getElementById('doneBanner');
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    const checked = [...checkboxes].filter(c => c.checked).length;
+    const pct = total ? Math.round(checked / total * 100) : 0;
+    progressBar.style.width = pct + '%';
+    progressLabel.textContent = `${checked} / ${total} 完了（${pct}%）`;
+    doneBanner.classList.toggle('visible', checked === total);
+  }
+
+  checkboxes.forEach(cb => cb.addEventListener('change', updateProgress));
+  updateProgress();
+</script>
+</body>
+</html>

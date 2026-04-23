@@ -1,22 +1,23 @@
-import sqlite3
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from flask import g
 
-_SCHEMA = os.path.join(os.path.dirname(__file__), "schema.sql")
 
-
-def get_db(app):
-    if "db" not in g:
-        g.db = sqlite3.connect(app.config.get("DATABASE", "employees.db"))
-        g.db.row_factory = sqlite3.Row
-        with open(_SCHEMA) as f:
-            g.db.executescript(f.read())
-    return g.db
+def get_session(app):
+    if "db_session" not in g:
+        engine = create_engine(app.config.get("DATABASE_URL", "sqlite:///employees.db"))
+        Session = sessionmaker(bind=engine)
+        g.db_session = Session()
+    return g.db_session
 
 
 def init_db(app):
+    from app.api.infrastructure.models import Base
+    engine = create_engine(app.config.get("DATABASE_URL", "sqlite:///employees.db"))
+    Base.metadata.create_all(engine)
+
     @app.teardown_appcontext
-    def close_db(e=None):
-        db = g.pop("db", None)
-        if db is not None:
-            db.close()
+    def close_session(e=None):
+        session = g.pop("db_session", None)
+        if session is not None:
+            session.close()

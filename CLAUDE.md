@@ -1,25 +1,40 @@
 # sample Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-20
+Auto-generated from all feature plans. Last updated: 2026-04-23
 
 ## Active Technologies
 
 - Python 3.12 + Flask 3.1、uv（パッケージ管理）、ruff（静的解析・フォーマット） (develop)
+- injector 0.22.0（DI） (feature/issues-15)
+- SQLAlchemy 2.x（ORM、DeclarativeBase + Column スタイル） (feature/issues-15)
 
 ## Project Structure
 
 ```text
 app/
 └── api/
-    ├── domain/          # エンティティ・ビジネスロジック（最内層）
-    ├── usecase/         # ユースケース
-    ├── infrastructure/  # 外部依存（SQLite等）
-    └── presentation/    # FlaskのBlueprint（最外層）
+    ├── core/                # ビジネスロジック（最内層）
+    │   ├── domain/
+    │   │   ├── <概念>/      # 例: employee/
+    │   │   │   ├── __init__.py  # @dataclass 値オブジェクト / DTO
+    │   │   │   └── <概念>.py    # エンティティ（__init__＋ロジック）
+    │   │   └── repository/  # リポジトリインターフェース（IXxx(ABC)）
+    │   └── usecase/         # アプリケーションビジネスルール
+    ├── infrastructure/      # 外部依存（SQLite / SQLAlchemy ORM）
+    │   ├── models/          # SQLAlchemy ORM モデル
+    │   └── repository/      # 具象実装
+    └── presentation/        # FlaskのBlueprint（最外層）
+app/
+└── module.py                # AppModule: injectorバインディング定義
 tests/
-└── presentation/        # Blueprintファイルに対応するテストファイル
+├── core/
+│   └── usecase/             # usecase層インテグレーションテスト
+├── infrastructure/
+│   └── repository/          # リポジトリ層インテグレーションテスト
+└── presentation/            # Blueprintファイルに対応するテストファイル
 ```
 
-依存方向: `presentation → usecase → domain`（内側に向かってのみ依存）
+アーキテクチャ: クリーンアーキテクチャ（依存方向は内側のみ、ドメインサービスなし）
 
 ## Commands
 

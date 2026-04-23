@@ -1,2 +1,4 @@
 flask==3.1.0
+injector==0.22.0
 pytest==8.3.5
+sqlalchemy==2.0.40

@@ -13,6 +13,7 @@ def get_session(app):
 
 def init_db(app):
     from app.api.infrastructure.models import Base
+
     engine = create_engine(app.config.get("DATABASE_URL", "sqlite:///employees.db"))
     Base.metadata.create_all(engine)
 

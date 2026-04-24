@@ -7,6 +7,7 @@ class Employee:
     IDを持つビジネスオブジェクトであり、勤続年数の計算などドメインロジックを担う。
     変換メソッドは持たず、usecase層でEmployeeOutputに変換する。
     """
+
     def __init__(self, id, name, role, position, department, age, hire_date):
         self.id = id
         self.name = name

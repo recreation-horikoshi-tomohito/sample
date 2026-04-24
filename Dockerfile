@@ -5,6 +5,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     git \
     nodejs npm \
+    bubblewrap \
+    socat \
     && npm install -g @anthropic-ai/claude-code@2.1.104 \
     && rm -rf /var/lib/apt/lists/*
 

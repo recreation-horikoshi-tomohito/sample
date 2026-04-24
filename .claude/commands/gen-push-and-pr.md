@@ -1,4 +1,4 @@
-# /gen-push — Push & PR コマンド生成
+# /gen-push-and-pr — Push & PR コマンド生成
 
 現在のブランチを push して PR を作るためのコマンドを生成します。
 Claude 自身は実行せず、ターミナルにペーストできる形で出力します。
@@ -22,6 +22,7 @@ git push -u origin <ブランチ名>
 変更内容を分析して適切な PR タイトルと本文を生成し、以下の形式で出力する:
 ```
 gh pr create \
+  --base develop \
   --title "<タイトル>" \
   --body "$(cat <<'EOF'
 ## Summary

@@ -38,15 +38,37 @@ tests/
 
 ## Commands
 
-```bash
-# コンテナ起動
-docker compose up -d
+pytest・ruff はサンドボックス環境内で **直接実行する**（`docker compose exec` は使わない）。
 
-# テスト実行（コンテナ内）
-docker compose exec app pytest -v
+```bash
+# テスト実行
+pytest -v
+
+# 特定ファイル／ディレクトリのみ実行
+pytest tests/presentation/ -v
 
 # 静的解析
-docker compose exec app ruff check .
+ruff check .
+
+# フォーマット
+ruff format .
+```
+
+### TDD サイクル
+
+```bash
+# 失敗したテストで即停止（Red → Green の確認に便利）
+pytest -v --tb=short -x
+```
+
+### pre-commit
+
+コミット前に ruff・pytest が自動実行される（`.pre-commit-config.yaml` で定義）。
+
+devコンテナ初回起動時に `postCreateCommand` で自動セットアップされる。手動で再セットアップする場合:
+
+```bash
+pre-commit install
 ```
 
 ## Code Style

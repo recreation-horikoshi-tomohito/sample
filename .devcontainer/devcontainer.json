@@ -4,6 +4,7 @@
   "service": "app-container",
   "workspaceFolder": "/app",
   "shutdownAction": "none",
+  "postCreateCommand": "pre-commit install",
   "customizations": {
     "vscode": {
       "extensions": [

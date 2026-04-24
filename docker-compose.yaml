@@ -9,3 +9,4 @@ services:
       - FLASK_ENV=development
     stdin_open: true
     tty: true
+    privileged: true  # ← ここに追加

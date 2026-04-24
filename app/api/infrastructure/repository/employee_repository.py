@@ -19,14 +19,38 @@ class SQLiteEmployeeRepository(IEmployeeRepository):
 
     def find_by_id(self, employee_id: int) -> Employee | None:
         session = get_session(current_app._get_current_object())
-        row = session.query(EmployeeModel).filter_by(id=employee_id, status="在籍中").first()
+        row = (
+            session.query(EmployeeModel)
+            .filter_by(id=employee_id, status="在籍中")
+            .first()
+        )
         if row is None:
             return None
         return self._to_entity(row)
 
+    def save(self, input) -> Employee:
+        session = get_session(current_app._get_current_object())
+        model = EmployeeModel(
+            name=input.name,
+            role=input.role,
+            position=input.position,
+            department=input.department,
+            age=input.age,
+            hire_date=input.hire_date,
+            status="在籍中",
+        )
+        session.add(model)
+        session.commit()
+        session.refresh(model)
+        return self._to_entity(model)
+
     def _to_entity(self, model) -> Employee:
         return Employee(
-            id=model.id, name=model.name, role=model.role,
-            position=model.position, department=model.department,
-            age=model.age, hire_date=model.hire_date,
+            id=model.id,
+            name=model.name,
+            role=model.role,
+            position=model.position,
+            department=model.department,
+            age=model.age,
+            hire_date=model.hire_date,
         )
